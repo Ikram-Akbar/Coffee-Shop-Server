@@ -11,7 +11,7 @@ app.use(express.json());
 
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri =`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.f8emp.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.f8emp.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -24,14 +24,30 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    
     await client.connect();
-   
+
+    const coffeeCollection = client.db("coffeeDB").collection("coffee");
+    
+    app.get("/coffee",async(req,res)=>{
+      const cursor = coffeeCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    app.post("/coffee", async (req, res) => {
+      const data = req.body;
+      const result = await coffeeCollection.insertOne(data);
+      res.send(result);
+    })
+
+
+
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
+
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
@@ -47,9 +63,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send("<h1>Coffee shop is ON </h1>")
+  res.send("<h1>Coffee shop is ON </h1>")
 })
 
 app.listen(port, () => {
-    console.log(`http://localhost:${port}`)
+  console.log(`http://localhost:${port}`)
 })
